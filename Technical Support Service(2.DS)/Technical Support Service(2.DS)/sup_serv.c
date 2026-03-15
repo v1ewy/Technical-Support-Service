@@ -36,7 +36,7 @@ void init_queue (struct Queue* queue) {
 }
 
 void create_req(Request* request) {
-    request->id = identifier++;
+    request->id = ++identifier;
     
     printf("Введите имя\n");
     printf("> ");
@@ -81,10 +81,38 @@ void add_request(Queue* department) {
     }
 }
 
+void peek(Queue* department) {
+    if (department->front == NULL) {
+        printf("Очередь пуста.\n");
+        return;
+    }
+    
+    struct QueueNode* first = department->front;
+    char* time = ctime(&first->data.timestamp);
+    time[strlen(time) - 1] = '\0';
+    printf("%d. [Приоритет:%d] %s (%s)\n", first->data.id,
+           first->data.priority, first->data.username, time);
+}
 
+void clear_memory(struct Queue* queue, int num) {
+    int cnt_task = 0;
+    struct QueueNode* current = queue->front;
+    struct QueueNode* next;
+    while (current != NULL) {
+        next = current->next;
+        free(current);
+        current = next;
+        cnt_task++;
+    }
+    
+    queue->front = NULL;
+    queue->rear = NULL;
+    queue->size = 0;
+    printf("✓ Очищено %d запросов из очереди номер %d.\n", cnt_task, num);
+}
 
 int main(void) {
-    History* history = NULL;
+    //History* history = NULL;
     Queue first;
     Queue second;
     Queue third;
@@ -100,6 +128,7 @@ int main(void) {
     switch (department) {
         case 1:
             add_request(&first);
+            peek(&first);
             break;
         case 2:
             add_request(&second);
@@ -113,5 +142,8 @@ int main(void) {
             break;
     }
     
+    clear_memory(&first, 1);
+    clear_memory(&second, 2);
+    clear_memory(&third, 3);
     return 0;
 }
