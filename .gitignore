@@ -56,3 +56,4 @@ dkms.conf
 
 # Xcode files
 *.xcodeproj
+.DS_Store
