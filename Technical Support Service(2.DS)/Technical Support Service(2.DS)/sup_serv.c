@@ -1,15 +1,25 @@
-﻿#define _CRT_SECURE_NO_WARNINGS
+#define _CRT_SECURE_NO_WARNINGS
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
+
+#ifdef _WIN32
 #include <windows.h>
+#endif
 
 // ============================ Константы ============================
 #define MAX_QUEUE_SIZE 5      // максимальный размер одной очереди
 #define MIN_TOTAL_SIZE 3       // минимальный суммарный размер для объединения
 #define MAX_DEPENDENCIES 100   // максимальное число зависимостей у заявки
 #define SAVE_FILE "support_data.txt"
+
+// ============================ Макрос для потоко-безопасного strtok ============================
+#ifdef _WIN32
+#define STRTOK strtok_s
+#else
+#define STRTOK strtok_r
+#endif
 
 // ============================ Структуры данных ============================
 
@@ -1039,7 +1049,7 @@ void load_from_file(const char* filename) {
         char line_copy[1024];
         strcpy(line_copy, line);
 
-        token = strtok_s(line_copy, ";\n", &context);
+        token = STRTOK(line_copy, ";\n", &context);
         if (!token) continue;
 
         char type = token[0];
@@ -1048,32 +1058,32 @@ void load_from_file(const char* filename) {
             continue;
         }
 
-        token = strtok_s(NULL, ";\n", &context);
+        token = STRTOK(NULL, ";\n", &context);
         if (!token) { printf("Строка %d: не хватает данных.\n", line_num); continue; }
         int dept = atoi(token) - 1;
 
-        token = strtok_s(NULL, ";\n", &context);
+        token = STRTOK(NULL, ";\n", &context);
         if (!token) { printf("Строка %d: не хватает данных.\n", line_num); continue; }
-        int queue_idx = atoi(token);
+        int queue_idx = atoi(token); // для очередей, для стека не используется
 
-        token = strtok_s(NULL, ";\n", &context);
+        token = STRTOK(NULL, ";\n", &context);
         if (!token) { printf("Строка %d: не хватает данных.\n", line_num); continue; }
         int id = atoi(token);
 
-        token = strtok_s(NULL, ";\n", &context);
+        token = STRTOK(NULL, ";\n", &context);
         if (!token) { printf("Строка %d: не хватает данных.\n", line_num); continue; }
         char username[256];
         strcpy(username, token);
 
-        token = strtok_s(NULL, ";\n", &context);
+        token = STRTOK(NULL, ";\n", &context);
         if (!token) { printf("Строка %d: не хватает данных.\n", line_num); continue; }
         int priority = atoi(token);
 
-        token = strtok_s(NULL, ";\n", &context);
+        token = STRTOK(NULL, ";\n", &context);
         if (!token) { printf("Строка %d: не хватает данных.\n", line_num); continue; }
         time_t timestamp = (time_t)atoll(token);
 
-        token = strtok_s(NULL, ";\n", &context);
+        token = STRTOK(NULL, ";\n", &context);
         char* deps_str = token;
 
         // Проверка на дубликат ID
@@ -1087,10 +1097,11 @@ void load_from_file(const char* filename) {
         if (deps_str && strlen(deps_str) > 0) {
             char deps_copy[256];
             strcpy(deps_copy, deps_str);
-            char* dep_token = strtok_s(deps_copy, ",", &context);
+            char* dep_context = NULL;
+            char* dep_token = STRTOK(deps_copy, ",", &dep_context);
             while (dep_token && dep_count < MAX_DEPENDENCIES) {
                 deps[dep_count++] = atoi(dep_token);
-                dep_token = strtok_s(NULL, ",", &context);
+                dep_token = STRTOK(NULL, ",", &dep_context);
             }
         }
 
@@ -1116,7 +1127,7 @@ void load_from_file(const char* filename) {
 
             insert_node_into_subdivision(&subs[dept], node);
         }
-        else {
+        else { // type == 'S'
             StackNode* node = (StackNode*)malloc(sizeof(StackNode));
             if (!node) {
                 printf("Ошибка памяти при загрузке.\n");
@@ -1150,8 +1161,10 @@ void load_from_file(const char* filename) {
 // ============================ Основная программа с меню ============================
 
 int main(void) {
+#ifdef _WIN32
     SetConsoleCP(1251);
     SetConsoleOutputCP(1251);
+#endif
 
     for (int i = 0; i < 3; i++) {
         init_subdivision(&subs[i]);
