@@ -1064,7 +1064,6 @@ void load_from_file(const char* filename) {
 
         token = STRTOK(NULL, ";\n", &context);
         if (!token) { printf("Строка %d: не хватает данных.\n", line_num); continue; }
-        int queue_idx = atoi(token); // для очередей, для стека не используется
 
         token = STRTOK(NULL, ";\n", &context);
         if (!token) { printf("Строка %d: не хватает данных.\n", line_num); continue; }
@@ -1086,7 +1085,6 @@ void load_from_file(const char* filename) {
         token = STRTOK(NULL, ";\n", &context);
         char* deps_str = token;
 
-        // Проверка на дубликат ID
         if (is_id_exists(id)) {
             printf("Строка %d: заявка с ID %d уже существует, пропуск.\n", line_num, id);
             continue;
@@ -1127,7 +1125,7 @@ void load_from_file(const char* filename) {
 
             insert_node_into_subdivision(&subs[dept], node);
         }
-        else { // type == 'S'
+        else {
             StackNode* node = (StackNode*)malloc(sizeof(StackNode));
             if (!node) {
                 printf("Ошибка памяти при загрузке.\n");
