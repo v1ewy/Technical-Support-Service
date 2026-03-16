@@ -39,7 +39,7 @@ typedef struct QueueNode {
     struct QueueNode* next;
 } QueueNode;
 
-// Очередь (приоритетная)
+// Очередь
 typedef struct Queue {
     QueueNode* front;
     QueueNode* rear;
